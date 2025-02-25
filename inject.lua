@@ -1,11 +1,9 @@
--- First load the GUI
-local GUI = loadstring(game:HttpGet("YOUR_GUI_SCRIPT_URL"))()
 
--- Then load the ESP module
-local ESPModule = loadstring(game:HttpGet("YOUR_ESP_SCRIPT_URL"))()
+local GUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/intrium/lethality/refs/heads/main/ui.lua"))()
 
--- Initialize the ESP with your GUI
+-- modules
+local ESPModule = loadstring(game:HttpGet("https://raw.githubusercontent.com/intrium/lethality/refs/heads/main/esp.lua"))()
+
 local destroyESP = ESPModule:Initialize(GUI)
 
--- If you ever need to disable the ESP completely
 -- destroyESP()
