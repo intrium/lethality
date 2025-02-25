@@ -12,7 +12,8 @@ local Config = {
     TextColor = Color3.fromRGB(255, 255, 255),
     Font = Enum.Font.SourceSansBold,
     ToggleOnColor = Color3.fromRGB(116, 86, 255),
-    ToggleOffColor = Color3.fromRGB(60, 60, 60)
+    ToggleOffColor = Color3.fromRGB(60, 60, 60),
+    ToggleKey = Enum.KeyCode.RightControl -- Default toggle key
 }
 
 -- Create Main GUI
@@ -87,8 +88,32 @@ ContentFrame.Position = UDim2.new(0, 120, 0, 30)
 ContentFrame.Size = UDim2.new(1, -120, 1, -30)
 ContentFrame.Parent = MainFrame
 
+-- Add keybind indicator at the bottom of the sidebar
+local KeybindIndicator = Instance.new("TextLabel")
+KeybindIndicator.Name = "KeybindIndicator"
+KeybindIndicator.BackgroundTransparency = 1
+KeybindIndicator.Position = UDim2.new(0, 0, 1, -20)
+KeybindIndicator.Size = UDim2.new(1, 0, 0, 20)
+KeybindIndicator.Font = Config.Font
+KeybindIndicator.Text = "Toggle: " .. Config.ToggleKey.Name
+KeybindIndicator.TextColor3 = Config.TextColor
+KeybindIndicator.TextSize = 12
+KeybindIndicator.Parent = Sidebar
+
 -- Tab Container Setup
 local TabContent = {}
+
+-- Toggle GUI Function
+local function ToggleGUI()
+    MainFrame.Visible = not MainFrame.Visible
+end
+
+-- Setup toggle keybind
+UIS.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == Config.ToggleKey then
+        ToggleGUI()
+    end
+end)
 
 -- Create Category Function
 function LethalityGUI:CreateCategory(name)
@@ -534,7 +559,123 @@ function LethalityGUI:CreateCategory(name)
         return dropdownObj
     end
     
+    -- Add Keybind Function
+    function Category:AddKeybind(keybindName, defaultKey, callback)
+        local KeybindFrame = Instance.new("Frame")
+        KeybindFrame.Name = keybindName.."Frame"
+        KeybindFrame.BackgroundTransparency = 1
+        KeybindFrame.Size = UDim2.new(1, -20, 0, 30)
+        KeybindFrame.Parent = ContentPage
+        
+        -- Position based on existing elements
+        local yPos = 10
+        for _, child in pairs(ContentPage:GetChildren()) do
+            if child ~= KeybindFrame and child:IsA("Frame") then
+                yPos = yPos + child.Size.Y.Offset + 5
+            end
+        end
+        KeybindFrame.Position = UDim2.new(0, 10, 0, yPos)
+        
+        -- Update canvas size
+        ContentPage.CanvasSize = UDim2.new(0, 0, 0, yPos + 40)
+        
+        -- Keybind Text
+        local KeybindText = Instance.new("TextLabel")
+        KeybindText.Name = "KeybindText"
+        KeybindText.BackgroundTransparency = 1
+        KeybindText.Position = UDim2.new(0, 0, 0, 0)
+        KeybindText.Size = UDim2.new(1, -70, 1, 0)
+        KeybindText.Font = Config.Font
+        KeybindText.Text = keybindName
+        KeybindText.TextColor3 = Config.TextColor
+        KeybindText.TextSize = 14
+        KeybindText.TextXAlignment = Enum.TextXAlignment.Left
+        KeybindText.Parent = KeybindFrame
+        
+        -- Keybind Button
+        local KeybindButton = Instance.new("TextButton")
+        KeybindButton.Name = "KeybindButton"
+        KeybindButton.BackgroundColor3 = Config.SecondaryColor
+        KeybindButton.BorderSizePixel = 0
+        KeybindButton.Position = UDim2.new(1, -60, 0, 0)
+        KeybindButton.Size = UDim2.new(0, 60, 1, 0)
+        KeybindButton.Font = Config.Font
+        KeybindButton.Text = defaultKey.Name
+        KeybindButton.TextColor3 = Config.TextColor
+        KeybindButton.TextSize = 14
+        KeybindButton.Parent = KeybindFrame
+        
+        -- Current key
+        local currentKey = defaultKey
+        local listening = false
+        
+        -- Set keybinding
+        KeybindButton.MouseButton1Click:Connect(function()
+            if listening then return end
+            
+            listening = true
+            KeybindButton.Text = "..."
+            
+            local inputConnection
+            inputConnection = UIS.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.Keyboard then
+                    currentKey = input.KeyCode
+                    KeybindButton.Text = currentKey.Name
+                    
+                    -- If this is the toggle key, update the indicator
+                    if keybindName == "Toggle GUI" then
+                        Config.ToggleKey = currentKey
+                        KeybindIndicator.Text = "Toggle: " .. currentKey.Name
+                    end
+                    
+                    if callback then
+                        callback(currentKey)
+                    end
+                    
+                    listening = false
+                    inputConnection:Disconnect()
+                end
+            end)
+        end)
+        
+        -- Return keybind object with methods
+        local keybindObj = {
+            Set = function(newKey)
+                if typeof(newKey) == "EnumItem" and newKey.EnumType == Enum.KeyCode then
+                    currentKey = newKey
+                    KeybindButton.Text = currentKey.Name
+                    
+                    if keybindName == "Toggle GUI" then
+                        Config.ToggleKey = currentKey
+                        KeybindIndicator.Text = "Toggle: " .. currentKey.Name
+                    end
+                    
+                    if callback then
+                        callback(currentKey)
+                    end
+                end
+            end,
+            Get = function()
+                return currentKey
+            end
+        }
+        
+        return keybindObj
+    end
+    
     return Category
+end
+
+-- Create Settings Category with Toggle Keybind
+function LethalityGUI:Initialize()
+    local SettingsCategory = LethalityGUI:CreateCategory("Settings")
+    
+    -- Add a keybind option for toggling the GUI
+    SettingsCategory:AddKeybind("Toggle GUI", Config.ToggleKey, function(newKey)
+        Config.ToggleKey = newKey
+    end)
+    
+    return LethalityGUI
 end
 
 return LethalityGUI
