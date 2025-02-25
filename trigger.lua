@@ -440,25 +440,21 @@ function TriggerbotModule:Initialize(GUI)
     UserInputService.InputBegan:Connect(function(input, gameProcessed)
         if gameProcessed then return end
         
-        if input.KeyCode == TriggerbotSettings.TriggerKey then
-            TriggerState = true
-            Log(4, "Trigger key pressed")
-        end
+        TriggerState = true
+        Log(4, "Trigger key pressed")
     end)
     
     UserInputService.InputEnded:Connect(function(input, gameProcessed)
-        if input.KeyCode == TriggerbotSettings.TriggerKey then
-            TriggerState = false
-            Log(4, "Trigger key released")
-            
-            -- If we were firing and not in hold mode, release mouse
-            if IsFiring and not TriggerbotSettings.HoldMode then
-                Log(3, "Key released, simulating mouse up")
-                pcall(function() 
-                    MouseFunctions.release() 
-                end)
-                IsFiring = false
-            end
+        TriggerState = false
+        Log(4, "Trigger key released")
+        
+        -- If we were firing and not in hold mode, release mouse
+        if IsFiring and not TriggerbotSettings.HoldMode then
+            Log(3, "Key released, simulating mouse up")
+            pcall(function() 
+                MouseFunctions.release() 
+            end)
+            IsFiring = false
         end
     end)
     

@@ -8,10 +8,10 @@ local Mouse = Player:GetMouse()
 local Config = {
     MainColor = Color3.fromRGB(30, 30, 30),
     SecondaryColor = Color3.fromRGB(45, 45, 45),
-    AccentColor = Color3.fromRGB(116, 86, 255),
+    AccentColor = Color3.fromRGB(60, 60, 60),
     TextColor = Color3.fromRGB(255, 255, 255),
-    Font = Enum.Font.SourceSansBold,
-    ToggleOnColor = Color3.fromRGB(116, 86, 255),
+    Font = Enum.Font.Code,
+    ToggleOnColor = Color3.fromRGB(73, 33, 103),
     ToggleOffColor = Color3.fromRGB(60, 60, 60),
     ToggleKey = Enum.KeyCode.RightControl -- Default toggle key
 }
